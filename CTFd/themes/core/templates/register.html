@@ -47,6 +47,24 @@
 					</label>
 					<input class="form-control" type="password" name="password" id="password-input" {% if password %}value="{{ password }}"{% endif %}/>
 				</div>
+                <div class="form-group">
+					<label for="student-id-input">
+						StudentID
+					</label>
+					<input class="form-control" type="text" name="student_id" id="student-id-input" {% if student_id %}value="{{ student_id }}"{% endif %}/>
+				</div>
+                <div class="form-group">
+					<label for="realname-input">
+						Realname
+					</label>
+					<input class="form-control" type="text" name="realname" id="realname-input" {% if realname %}value="{{ realname }}"{% endif %}/>
+				</div>
+                <div class="form-group">
+					<label for="realname-input">
+						Phone
+					</label>
+					<input class="form-control" type="text" name="phone" id="phone-input" {% if phone %}value="{{ phone }}"{% endif %}/>
+				</div>
 				<div class="row pt-3">
 					<div class="col-md-12">
 						<button type="submit" tabindex="0" class="btn btn-md btn-primary btn-outlined float-right">Submit</button>

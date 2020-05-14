@@ -16,6 +16,11 @@
 					<thead>
 					<tr>
 						<td><b>User</b></td>
+
+						<td><b>StudentID</b></td>
+						<td><b>Realname</b></td>
+						<td><b>Phone</b></td>
+
 						<td><b>Website</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Affiliation</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Country</b></td>
@@ -38,6 +43,24 @@
 									</a>
 								{% endif %}
 							</td>
+
+							<td class="text-center">
+								{% if user.student_id %}
+									{{ user.student_id }}
+								{% endif %}
+							</td>
+							<td class="text-center">
+								{% if user.realname %}
+									{{ user.realname }}
+								{% endif %}
+							</td>
+							<td class="text-center">
+								{% if user.phone %}
+									{{ user.phone }}
+								{% endif %}
+							</td>
+
+
 							<td class="text-center" style="width: 10px;">
 								{% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}
 									<a href="{{ user.website }}" target="_blank">

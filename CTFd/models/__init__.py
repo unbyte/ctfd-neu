@@ -243,6 +243,11 @@ class Users(db.Model):
     banned = db.Column(db.Boolean, default=False)
     verified = db.Column(db.Boolean, default=False)
 
+    # For neu
+    realname = db.Column(db.VARCHAR(20))
+    student_id = db.Column(db.VARCHAR(8), unique=True)
+    phone = db.Column(db.VARCHAR(11), unique=True)
+
     # Relationship for Teams
     team_id = db.Column(db.Integer, db.ForeignKey("teams.id"))
 
@@ -326,9 +331,9 @@ class Users(db.Model):
         score = db.func.sum(Challenges.value).label("score")
         user = (
             db.session.query(Solves.user_id, score)
-            .join(Users, Solves.user_id == Users.id)
-            .join(Challenges, Solves.challenge_id == Challenges.id)
-            .filter(Users.id == self.id)
+                .join(Users, Solves.user_id == Users.id)
+                .join(Challenges, Solves.challenge_id == Challenges.id)
+                .filter(Users.id == self.id)
         )
 
         award_score = db.func.sum(Awards.value).label("award_score")
@@ -688,3 +693,15 @@ class Tokens(db.Model):
 
 class UserTokens(Tokens):
     __mapper_args__ = {"polymorphic_identity": "user"}
+
+
+class StudentID(db.Model):
+    __tablename__ = "student_id"
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.VARCHAR(8), index=True)
+
+    def __init__(self, *args, **kwargs):
+        super(StudentID, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<Student ID %r>" % self.id

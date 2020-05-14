@@ -6,7 +6,7 @@ from flask import current_app as app
 from flask import redirect, render_template, request, session, url_for
 from itsdangerous.exc import BadSignature, BadTimeSignature, SignatureExpired
 
-from CTFd.models import Teams, Users, db
+from CTFd.models import Teams, Users, db, StudentID
 from CTFd.utils import config, email, get_app_config, get_config
 from CTFd.utils import user as current_user
 from CTFd.cache import clear_user_session, clear_team_session
@@ -186,18 +186,32 @@ def register():
         name = request.form.get("name", "").strip()
         email_address = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
+        phone = request.form.get("phone", "").strip()
+        student_id = request.form.get("student_id", "").strip()
+        realname = request.form.get("realname", "").strip()
 
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
         emails = (
             Users.query.add_columns("email", "id")
-            .filter_by(email=email_address)
-            .first()
+                .filter_by(email=email_address)
+                .first()
         )
         pass_short = len(password) == 0
         pass_long = len(password) > 128
         valid_email = validators.validate_email(email_address)
         team_name_email_check = validators.validate_email(name)
+
+        phone_valid = len(phone) == 11
+
+        student_id_exist = Users.query.add_columns('student_id', 'id').filter_by(
+            student_id=student_id).first()
+
+        student_id_valid = StudentID.query.add_columns('student_id', 'id').filter_by(
+            student_id=student_id).first()
+
+        phone_exist = Users.query.add_columns('phone', 'id').filter_by(phone=phone).first()
+        realname_empty = len(realname) == 0
 
         if not valid_email:
             errors.append("Please enter a valid email address")
@@ -219,6 +233,17 @@ def register():
             errors.append("Pick a shorter password")
         if name_len:
             errors.append("Pick a longer user name")
+        if phone_valid:
+            errors.append("Wrong phone number format")
+        if not student_id_valid:
+            errors.append("Invalid student id")
+
+        if realname_empty:
+            errors.append("Realname can't be empty")
+        if student_id_exist:
+            errors.append("That student id is already taken")
+        if phone_exist:
+            errors.append("That phone number is already taken")
 
         if len(errors) > 0:
             return render_template(
@@ -227,10 +252,14 @@ def register():
                 name=request.form["name"],
                 email=request.form["email"],
                 password=request.form["password"],
+                student_id=student_id,
+                realname=realname,
+                phone=phone
             )
         else:
             with app.app_context():
-                user = Users(name=name, email=email_address, password=password)
+                user = Users(name=name, email=email_address, password=password,
+                             student_id=student_id, realname=realname, phone=phone)
                 db.session.add(user)
                 db.session.commit()
                 db.session.flush()
@@ -238,7 +267,7 @@ def register():
                 login_user(user)
 
                 if config.can_send_mail() and get_config(
-                    "verify_emails"
+                        "verify_emails"
                 ):  # Confirming users is enabled and we can send email.
                     log(
                         "registrations",
@@ -249,7 +278,7 @@ def register():
                     return redirect(url_for("auth.confirm"))
                 else:  # Don't care about confirming users
                     if (
-                        config.can_send_mail()
+                            config.can_send_mail()
                     ):  # We want to notify the user that they have registered.
                         email.successful_registration_notification(user.email)
 
@@ -286,7 +315,7 @@ def login():
 
                 db.session.close()
                 if request.args.get("next") and validators.is_safe_url(
-                    request.args.get("next")
+                        request.args.get("next")
                 ):
                     return redirect(request.args.get("next"))
                 return redirect(url_for("challenges.listing"))
@@ -311,9 +340,9 @@ def login():
 @auth.route("/oauth")
 def oauth_login():
     endpoint = (
-        get_app_config("OAUTH_AUTHORIZATION_ENDPOINT")
-        or get_config("oauth_authorization_endpoint")
-        or "https://auth.majorleaguecyber.org/oauth/authorize"
+            get_app_config("OAUTH_AUTHORIZATION_ENDPOINT")
+            or get_config("oauth_authorization_endpoint")
+            or "https://auth.majorleaguecyber.org/oauth/authorize"
     )
 
     if get_config("user_mode") == "teams":
@@ -327,7 +356,7 @@ def oauth_login():
         error_for(
             endpoint="auth.login",
             message="OAuth Settings not configured. "
-            "Ask your CTF administrator to configure MajorLeagueCyber integration.",
+                    "Ask your CTF administrator to configure MajorLeagueCyber integration.",
         )
         return redirect(url_for("auth.login"))
 
@@ -349,9 +378,9 @@ def oauth_redirect():
 
     if oauth_code:
         url = (
-            get_app_config("OAUTH_TOKEN_ENDPOINT")
-            or get_config("oauth_token_endpoint")
-            or "https://auth.majorleaguecyber.org/oauth/token"
+                get_app_config("OAUTH_TOKEN_ENDPOINT")
+                or get_config("oauth_token_endpoint")
+                or "https://auth.majorleaguecyber.org/oauth/token"
         )
 
         client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
@@ -370,9 +399,9 @@ def oauth_redirect():
         if token_request.status_code == requests.codes.ok:
             token = token_request.json()["access_token"]
             user_url = (
-                get_app_config("OAUTH_API_ENDPOINT")
-                or get_config("oauth_api_endpoint")
-                or "https://api.majorleaguecyber.org/user"
+                    get_app_config("OAUTH_API_ENDPOINT")
+                    or get_config("oauth_api_endpoint")
+                    or "https://api.majorleaguecyber.org/user"
             )
 
             headers = {
