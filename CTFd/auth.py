@@ -233,7 +233,7 @@ def register():
             errors.append("Pick a shorter password")
         if name_len:
             errors.append("Pick a longer user name")
-        if phone_valid:
+        if not phone_valid:
             errors.append("Wrong phone number format")
         if not student_id_valid:
             errors.append("Invalid student id")
