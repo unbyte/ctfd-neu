@@ -1,0 +1,13 @@
+version: '3'
+services:
+  pot:
+    build:
+      context: ..
+      dockerfile: ./scripts/Dockerfile
+    image: ctfd-runner
+    volumes:
+      - ../:/app
+    container_name: ctfd
+    restart: always
+    ports:
+      - 80:4000
